@@ -1,0 +1,30 @@
+[env]
+exp_dir = 'experiments'
+exp_name = 'MSP_split50_5x5'
+num_workers = 8
+
+[model]
+resolution = 5
+
+[data]
+type = 'L3F-dataset'
+root = './L3F-dataset'
+split = '50'
+patch_size = 128
+cropped_resolution = 5
+size_divisibility = 4
+
+[optim]
+num_iters = 180000
+batch_size = 1
+base_lr = 1e-4
+min_lr = 1e-6
+save_step = 20000
+eval_step = 10000
+
+[[metrics]]
+name = 'PSNR'
+primary = true
+
+[[metrics]]
+name = 'SSIM'
