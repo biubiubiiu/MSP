@@ -41,7 +41,7 @@ class Env(object):
         self.setup_logger(self.save_dir, save_local=training, console_high_pri_msg_only=True)
 
         # setup wandb (optional)
-        self.use_wandb = isinstance(config.wandb_key, str)
+        self.use_wandb = isinstance(config.wandb_key, str) and config.wandb_key.strip() != ''
         if self.use_wandb:
             logging.info('setting up wandb backend')
             self.setup_wandb(config)

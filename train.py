@@ -5,7 +5,6 @@ import os
 from collections import defaultdict
 from pprint import pformat
 
-# from lib.pytorch_ssim import SSIM
 import piq
 import torch
 import torch.nn.functional as F

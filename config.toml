@@ -2,6 +2,7 @@
 exp_dir = 'experiments'
 exp_name = 'MSP_split50_5x5'
 num_workers = 8
+# wandb_key = ''  # (optional) wandb api key
 
 [model]
 resolution = 5

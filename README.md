@@ -19,12 +19,21 @@ First, download the [L3F dataset](https://mohitlamba94.github.io/L3Fnet/) and sy
     ...
 ```
 
+Modify `config.toml` to do necessary setup:
+
+
 Modify the `split` item in `config.toml` to specify the subset for training/evaluation/testing:
 
 ``````
+[env]
+wandb_key = ''
+
 [data]
-split = '20'   # should be '20', '50' or '100'
+split = '20'
 ``````
+
+- `split`: specify the subset for training/evaluation/testing. Should be '20', '50' or '100'.
+- `wandb_key`: (optional) the api key for wandb.
 
 To start training or testing, execute the following commands:
 
