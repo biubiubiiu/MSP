@@ -11,7 +11,8 @@ import torch
 from addict import Dict
 from torch.backends import cudnn
 from torchmetrics import MeanMetric, Metric
-from torchmetrics.image import (PeakSignalNoiseRatio,
+from torchmetrics.image import (LearnedPerceptualImagePatchSimilarity,
+                                PeakSignalNoiseRatio,
                                 StructuralSimilarityIndexMeasure)
 
 
@@ -117,7 +118,8 @@ def init_metrics(cfg):
     METRICS = {
         # all metrics are computed in torch.uint8 data type
         'psnr': partial(MeanPeakSignalNoiseRatio, data_range=255.0),
-        'ssim': partial(MeanStructuralSimilarityIndexMeasure, data_range=255.0)
+        'ssim': partial(MeanStructuralSimilarityIndexMeasure, data_range=255.0),
+        'lpips': partial(MeanLearnedPerceptualImagePatchSimilarity, net_type='alex', data_range=255.0)
     }
     metric_cls = METRICS.get(cfg.name.lower(), None)
     if not metric_cls:
@@ -162,4 +164,28 @@ class MeanStructuralSimilarityIndexMeasure(Metric):
 
     def reset(self):
         self.ssim.reset()
+        self.aggregator.reset()
+
+
+class MeanLearnedPerceptualImagePatchSimilarity(Metric):
+    def __init__(self, net_type, data_range):
+        super().__init__()
+        self.lpips = LearnedPerceptualImagePatchSimilarity(net_type)
+        self.data_range = data_range
+        self.aggregator = MeanMetric()
+
+    def update(self, preds, target):
+        # scale to [0, 1]
+        preds = preds / self.data_range
+        target = target / self.data_range
+
+        self.lpips.update(preds, target)
+        self.aggregator.update(self.lpips.compute())
+        self.lpips.reset()
+
+    def compute(self):
+        return self.aggregator.compute()
+
+    def reset(self):
+        self.lpips.reset()
         self.aggregator.reset()

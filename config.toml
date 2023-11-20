@@ -30,3 +30,6 @@ primary = true
 
 [[metrics]]
 name = 'SSIM'
+
+# [[metrics]]
+# name = 'LPIPS'
