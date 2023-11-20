@@ -44,10 +44,10 @@ def main():
         for data in tqdm(test_loader, leave=False, dynamic_ncols=True, desc='Testing'):
             lq, gt, stem = (
                 data['lq'].to(env.device),
-                data['gt'].to(env.device).squeeze(0),
+                data['gt'].to(env.device),
                 data['stem'][0]
             )
-            out = model(lq)[-1][0]
+            out = model(lq)[-1]
 
             # crop back to original shape
             h, w = gt.shape[-2:]
