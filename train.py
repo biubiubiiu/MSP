@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 import utils
 from dataset import L3FDataset, repeater
-from models import LFEn_s3
+from model import MSPNet
 
 
 def parse_arguments():
@@ -40,7 +40,7 @@ def main():
     if env.use_wandb:
         import wandb
 
-    model = LFEn_s3(n_view=config.model.resolution).to(env.device)
+    model = MSPNet(config.model).to(env.device)
     optimizer = Adam(model.parameters(), lr=config.optim.base_lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=config.optim.num_iters, eta_min=config.optim.min_lr)
 
@@ -72,7 +72,7 @@ def main():
         out1, out2, out3 = model(lq)
 
         l1_loss = 0.05 * F.l1_loss(out1, gt) + 0.1 * F.l1_loss(out2, gt) + F.l1_loss(out3, gt)
-        ssim_loss = 1 - piq.ssim(out3.squeeze(0).clamp(0.0, 1.0), gt.squeeze(0), downsample=False)
+        ssim_loss = 1 - piq.ssim(out3.flatten(0, 2).clamp(0.0, 1.0), gt.flatten(0, 2), downsample=False)
         loss = l1_loss + ssim_loss
 
         optimizer.zero_grad()
@@ -97,14 +97,18 @@ def main():
                 for data in tqdm(val_loader, leave=False, dynamic_ncols=True, desc=f'Evaluating'):
                     lq, gt, stem = (
                         data['lq'].to(env.device),
-                        data['gt'].to(env.device).squeeze(0),
+                        data['gt'].to(env.device),
                         data['stem'][0]
                     )
-                    out = model(lq)[-1].squeeze(0)
+                    out = model(lq)[-1]
 
                     # crop back to original shape
                     h, w = gt.shape[-2:]
                     out = out[..., :h, :w]
+
+                    # reshape to [U*V, C, H, W]
+                    out = out.flatten(0, 2)
+                    gt = gt.flatten(0, 2)
 
                     quant_out = out.mul(255).add_(0.5).clamp_(0, 255).to('cpu', torch.uint8)
                     quant_gt = gt.mul(255).add_(0.5).clamp_(0, 255).to('cpu', torch.uint8)
@@ -114,7 +118,7 @@ def main():
 
                     if args.save_images:
                         save_path = os.path.join(env.visual_dir(iter=iteration), f'{stem}.png')
-                        save_image(out, save_path, nrow=5, padding=0, normalize=False)
+                        save_image(out, save_path, nrow=config.model.resolution, padding=0, normalize=False)
 
                 val_results = {}
                 for i, (name, metric) in enumerate(val_metrics):

@@ -6,6 +6,7 @@ num_workers = 8
 
 [model]
 resolution = 5
+stages = 3
 
 [data]
 type = 'L3F-dataset'

@@ -102,10 +102,6 @@ class L3FDataset(Dataset):
         gt_views = gt_views[self.sampled_area_start:self.sampled_area_end,
                             self.sampled_area_start:self.sampled_area_end]
 
-        # [N, N, C, H, W] -> [N**2, C, H, W]
-        lq_views = lq_views.flatten(0, 1)
-        gt_views = gt_views.flatten(0, 1)
-
         return lq_views, gt_views
 
     def _pad_test_image(self, img, size_divisibility):

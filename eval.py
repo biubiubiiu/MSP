@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 import utils
 from dataset import L3FDataset
-from models import LFEn_s3
+from model import MSPNet
 
 
 def parse_arguments():
@@ -30,7 +30,7 @@ def main():
     print(f'using config file:\n{pformat(config)}')
     print(f'using device {env.device}')
 
-    model = LFEn_s3(n_view=config.model.resolution).to(env.device)
+    model = MSPNet(config.model).to(env.device)
     ckpt = torch.load(args.ckpt, map_location=env.device)
     model.load_state_dict(ckpt['model_state_dict'])
     model.eval()
@@ -52,6 +52,10 @@ def main():
             # crop back to original shape
             h, w = gt.shape[-2:]
             out = out[..., :h, :w]
+
+            # reshape to [U*V, C, H, W]
+            out = out.flatten(0, 2)
+            gt = gt.flatten(0, 2)
 
             quant_out = out.mul(255).add_(0.5).clamp_(0, 255).to('cpu', torch.uint8)
             quant_gt = gt.mul(255).add_(0.5).clamp_(0, 255).to('cpu', torch.uint8)
