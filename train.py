@@ -65,14 +65,16 @@ def main():
         start_iter = int(ckpt['start_iter'])
 
     acc_loss_dict = defaultdict(lambda: 0)
+    l1_loss_weights = config.optim.inter_loss_weights[:model.n_stage - 1] + [1.0]
+    assert len(l1_loss_weights) == model.n_stage
     for iteration in tqdm(range(start_iter, config.optim.num_iters+1), dynamic_ncols=True, desc='Training'):
         model.train()
         data = next(train_loader)
         lq, gt = data['lq'].to(env.device), data['gt'].to(env.device)
-        out1, out2, out3 = model(lq)
+        outs = model(lq)
 
-        l1_loss = 0.05 * F.l1_loss(out1, gt) + 0.1 * F.l1_loss(out2, gt) + F.l1_loss(out3, gt)
-        ssim_loss = 1 - piq.ssim(out3.flatten(0, 2).clamp(0.0, 1.0), gt.flatten(0, 2), downsample=False)
+        l1_loss = sum(weight * F.l1_loss(out, gt) for weight, out in zip(l1_loss_weights, outs))
+        ssim_loss = 1 - piq.ssim(outs[-1].flatten(0, 2).clamp(0.0, 1.0), gt.flatten(0, 2), downsample=False)
         loss = l1_loss + ssim_loss
 
         optimizer.zero_grad()

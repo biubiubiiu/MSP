@@ -23,6 +23,7 @@ base_lr = 1e-4
 min_lr = 1e-6
 save_step = 20000
 eval_step = 10000
+inter_loss_weights = [0.05, 0.1, 0.1, 0.15]
 
 [[metrics]]
 name = 'PSNR'
