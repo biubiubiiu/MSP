@@ -118,7 +118,7 @@ def init_metrics(cfg):
     METRICS = {
         # all metrics are computed in torch.uint8 data type
         'psnr': partial(MeanPeakSignalNoiseRatio, data_range=255.0),
-        'ssim': partial(MeanStructuralSimilarityIndexMeasure, data_range=255.0),
+        'ssim': partial(StructuralSimilarityIndexMeasure, data_range=255.0),
         'lpips': partial(MeanLearnedPerceptualImagePatchSimilarity, net_type='alex', data_range=255.0)
     }
     metric_cls = METRICS.get(cfg.name.lower(), None)
@@ -148,31 +148,11 @@ class MeanPeakSignalNoiseRatio(Metric):
         self.aggregator.reset()
 
 
-class MeanStructuralSimilarityIndexMeasure(Metric):
-    def __init__(self, data_range):
-        super().__init__()
-        self.ssim = StructuralSimilarityIndexMeasure(data_range=data_range)
-        self.aggregator = MeanMetric()
-
-    def update(self, preds, target):
-        self.ssim.update(preds, target)
-        self.aggregator.update(self.ssim.compute())
-        self.ssim.reset()
-
-    def compute(self):
-        return self.aggregator.compute()
-
-    def reset(self):
-        self.ssim.reset()
-        self.aggregator.reset()
-
-
 class MeanLearnedPerceptualImagePatchSimilarity(Metric):
     def __init__(self, net_type, data_range):
         super().__init__()
         self.lpips = LearnedPerceptualImagePatchSimilarity(net_type)
         self.data_range = data_range
-        self.aggregator = MeanMetric()
 
     def update(self, preds, target):
         # scale to [0, 1]
@@ -180,12 +160,9 @@ class MeanLearnedPerceptualImagePatchSimilarity(Metric):
         target = target / self.data_range
 
         self.lpips.update(preds, target)
-        self.aggregator.update(self.lpips.compute())
-        self.lpips.reset()
 
     def compute(self):
-        return self.aggregator.compute()
+        return self.lpips.compute()
 
     def reset(self):
         self.lpips.reset()
-        self.aggregator.reset()
