@@ -6,10 +6,10 @@ A PyTorch implementation of _[TCI 2023 paper](https://ieeexplore.ieee.org/docume
 
 ## Quick Start
 
-1. Download the [L3F dataset](https://mohitlamba94.github.io/L3Fnet/) and create a symlink to the project root. Ensure your directory structure resembles the following:
+1. Download the [L3F dataset](https://mohitlamba94.github.io/L3Fnet/) and create a symlink `L3F-dataset` to the project root. Ensure your directory structure resembles the following:
    
    ```
-   |-- L3FNet
+   |-- MSP
        |-- L3F-dataset
            |-- jpeg
                |-- train
