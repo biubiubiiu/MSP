@@ -39,7 +39,7 @@ class L3FDataset(Dataset):
         # crop central views images
         self.resolution = cfg.cropped_resolution or 15
 
-        # ignore more views from the top and left boundary to align the official implementation
+        # ignore more views from the top and left boundary to align the L3FNet implementation
         self.sampled_area_start = math.ceil((15 - self.resolution) * 0.5)
         self.sampled_area_end = self.sampled_area_start + self.resolution
 
