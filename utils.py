@@ -10,7 +10,7 @@ import toml
 import torch
 from addict import Dict
 from torch.backends import cudnn
-from torchmetrics import MeanMetric, Metric
+from torchmetrics import Metric
 from torchmetrics.image import (LearnedPerceptualImagePatchSimilarity,
                                 PeakSignalNoiseRatio,
                                 StructuralSimilarityIndexMeasure)
@@ -117,7 +117,7 @@ def save_state_dict(model, optimizer, curr_iter, save_path):
 def init_metrics(cfg):
     METRICS = {
         # all metrics are computed in torch.uint8 data type
-        'psnr': partial(MeanPeakSignalNoiseRatio, data_range=255.0),
+        'psnr': partial(PeakSignalNoiseRatio, data_range=255.0, dim=(1, 2, 3)),
         'ssim': partial(StructuralSimilarityIndexMeasure, data_range=255.0),
         'lpips': partial(MeanLearnedPerceptualImagePatchSimilarity, net_type='alex', data_range=255.0)
     }
@@ -127,25 +127,6 @@ def init_metrics(cfg):
 
     metric = metric_cls()
     return (cfg.name, metric)
-
-
-class MeanPeakSignalNoiseRatio(Metric):
-    def __init__(self, data_range):
-        super().__init__()
-        self.psnr = PeakSignalNoiseRatio(data_range=data_range)
-        self.aggregator = MeanMetric()
-
-    def update(self, preds, target):
-        self.psnr.update(preds, target)
-        self.aggregator.update(self.psnr.compute())
-        self.psnr.reset()
-
-    def compute(self):
-        return self.aggregator.compute()
-
-    def reset(self):
-        self.psnr.reset()
-        self.aggregator.reset()
 
 
 class MeanLearnedPerceptualImagePatchSimilarity(Metric):
